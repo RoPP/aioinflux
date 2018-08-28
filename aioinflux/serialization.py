@@ -52,10 +52,13 @@ def make_line(point: Mapping, measurement=None, **extra_tags) -> str:
     """Converts dictionary-like data into a single line protocol line (point)"""
     tags = _parse_tags(point, extra_tags)
     if tags:
-        return (f'{_parse_measurement(point, measurement)},{tags} '
-                f'{_parse_fields(point)} {_parse_timestamp(point)}')
-    return (f'{_parse_measurement(point, measurement)} '
-            f'{_parse_fields(point)} {_parse_timestamp(point)}')
+        return '{},{} {} {}'.format(
+            _parse_measurement(point, measurement), tags,
+            _parse_fields(point), _parse_timestamp(point))
+    return '{} {} {}'.format(
+        _parse_measurement(point, measurement), _parse_fields(point),
+        _parse_timestamp(point)
+    )
 
 
 def _parse_measurement(point, measurement):
@@ -75,7 +78,7 @@ def _parse_tags(point, extra_tags):
             v = escape(v, tag_escape)
             if not v:
                 continue  # ignore blank/null string tags
-            output.append(f'{k}={v}')
+            output.append('{}={}'.format(k, v))
     except KeyError:
         pass
     if output:
@@ -106,17 +109,17 @@ def _parse_fields(point):
     for k, v in point['fields'].items():
         k = escape(k, key_escape)
         if isinstance(v, bool):
-            output.append(f'{k}={v}')
+            output.append('{}={}'.format(k, v))
         elif isinstance(v, int):
-            output.append(f'{k}={v}i')
+            output.append('{}={}i'.format(k, v))
         elif isinstance(v, str):
-            output.append(f'{k}="{v.translate(str_escape)}"')
+            output.append('{}="{}"'.format(k, v.translate(str_escape)))
         elif v is None:
             # Empty values
             continue
         else:
             # Floats
-            output.append(f'{k}={v}')
+            output.append('{}={}'.format(k, v))
     return ','.join(output)
 
 
@@ -185,8 +188,8 @@ def itertuples(df):
 def make_replacements(df):
     obj_cols = {k for k, v in dict(df.dtypes).items() if v is np.dtype('O')}
     other_cols = set(df.columns) - obj_cols
-    obj_nans = (f'{k}="nan"' for k in obj_cols)
-    other_nans = (f'{k}=nan' for k in other_cols)
+    obj_nans = ('{}="nan"'.format(k) for k in obj_cols)
+    other_nans = ('{}=nan'.format(k) for k in other_cols)
     replacements = [
         ('|'.join(chain(obj_nans, other_nans)), ''),
         (',{2,}', ','),
@@ -210,24 +213,24 @@ def parse_df(df, measurement, tag_columns=None, **extra_tags):
     tags = []
     fields = []
     for k, v in extra_tags.items():
-        tags.append(f"{k}={escape(v, key_escape)}")
+        tags.append("{}={}".format(k, escape(v, key_escape)))
     for i, (k, v) in enumerate(df.dtypes.items()):
         k = k.translate(key_escape)
         if k in tag_columns:
-            tags.append(f"{k}={{p[{i+1}]}}")
+            tags.append("{}={{p[{}]}}".format(k, i+1))
         elif issubclass(v.type, np.integer):
-            fields.append(f"{k}={{p[{i+1}]}}i")
+            fields.append("{}={{p[{}]}}i".format(k, i+1]}))
         elif issubclass(v.type, (np.float, np.bool_)):
-            fields.append(f"{k}={{p[{i+1}]}}")
+            fields.append("{}={{p[{}]}}".format(k, i+1]}))
         else:
             # String escaping is skipped for performance reasons
             # Strings containing double-quotes can cause strange write errors
             # and should be sanitized by the user.
             # e.g., df[k] = df[k].astype('str').str.translate(str_escape)
-            fields.append(f"{k}=\"{{p[{i+1}]}}\"")
-    fmt = (f'{measurement}', f'{"," if tags else ""}', ','.join(tags),
+            fields.append("{}=\"{{p[{}]}}\"".format(k, i+1))
+    fmt = ('{}'.format(measurement), '{}'.format("," if tags else ""), ','.join(tags),
            ' ', ','.join(fields), ' {p[0].value}')
-    f = eval("lambda p: f'{}'".format(''.join(fmt)))
+    f = eval("lambda p: '{}'".format(''.join(fmt)))
 
     # Map/concat
     if isnull.any():

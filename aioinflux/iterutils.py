@@ -23,7 +23,7 @@ class InfluxDBResult:
 
     def __repr__(self):
         q = self.query[:80] + '...' if len(self.query) > 80 else self.query
-        return f'<{type(self).__name__} [q="{q}"]>'
+        return '<{} [q="{q}"]>'.format(type(self).__name__)
 
     def __iter__(self):
         return iterpoints(self.data, parser=self.parser)
@@ -51,7 +51,7 @@ class InfluxDBChunkedResult:
 
     def __repr__(self):
         q = self.query[:80] + '...' if len(self.query) > 80 else self.query
-        return f'<{type(self).__name__} [q="{q}"]>'
+        return '<{} [q="{q}"]>'.format(type(self).__name__)
 
     def __aiter__(self):
         return self.iterpoints()

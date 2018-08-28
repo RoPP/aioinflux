@@ -45,8 +45,8 @@ class InfluxDBWriteError(InfluxDBError):
         self.status = resp.status
         self.headers = resp.headers
         self.reason = resp.reason
-        super().__init__(f'Error writing data ({self.status} - {self.reason}): '
-                         f'{self.headers.get("X-Influxdb-Error", "")}')
+        super().__init__('Error writing data ({} - {}): {}'.format(
+            self.status, self.reason, self.headers.get("X-Influxdb-Error", "")))
 
 
 class InfluxDBClient:
@@ -107,7 +107,7 @@ class InfluxDBClient:
             connector=aiohttp.UnixConnector(path=unix_socket,
                                             loop=self._loop) if unix_socket else None,
         )
-        self._url = f'{"https" if ssl else "http"}://{host}:{port}/{{endpoint}}'
+        self._url = '{}://{}:{}/{{endpoint}}'.format("https" if ssl else "http", host, port)
         self.host = host
         self.port = port
         self._mode = None
@@ -148,8 +148,8 @@ class InfluxDBClient:
     def db(self, db):
         self._db = db
         if not db:
-            warnings.warn(f'No default databases is set. '
-                          f'Database must be specified when querying/writing.')
+            warnings.warn('No default databases is set. '
+                          'Database must be specified when querying/writing.')
         elif self.output == 'dataframe' and db not in self.tag_cache:
             if self.mode == 'async':
                 asyncio.ensure_future(self.get_tag_info(), loop=self._loop)
@@ -173,10 +173,10 @@ class InfluxDBClient:
             asyncio.ensure_future(self._session.close(), loop=self._loop)
 
     def __repr__(self):
-        items = [f'{k}={v}' for k, v in vars(self).items()
+        items = ['{}={}'.format(k, v) for k, v in vars(self).items()
                  if not k.startswith('_') and k != 'tag_cache']
-        items.append(f'mode={self.mode}')
-        return f'{type(self).__name__}({", ".join(items)})'
+        items.append('mode={}'.format(self.mode))
+        return '{}({})'.format(type(self).__name__, ", ".join(items))
 
     @runner
     async def close(self):
@@ -190,7 +190,7 @@ class InfluxDBClient:
          Returns a dictionary containing the headers of the response from `influxd`.
          """
         async with self._session.get(self._url.format(endpoint='ping')) as resp:
-            logger.debug(f'{resp.status}: {resp.reason}')
+            logger.debug('{}: {}'.format(resp.status, resp.reason))
             return dict(resp.headers.items())
 
     @runner
@@ -282,7 +282,7 @@ class InfluxDBClient:
             db = self.db if db is None else db
             query = q.format(db=db, **kwargs)
         except KeyError as e:
-            raise ValueError(f'Missing argument "{e.args[0]}" in {repr(q)}')
+            raise ValueError('Missing argument "{}" in {}'.format(e.args[0], repr(q)))
 
         data = dict(q=query, db=db, chunked=str(chunked).lower(), epoch=epoch)
         if chunked and chunk_size:
@@ -347,7 +347,7 @@ class InfluxDBClient:
                     for _, v in tag_values['results'][0]['series'][0]['values']:
                         cache[series['name']][tag].append(v)
 
-        logger.info(f"Caching tags from all measurements from '{self.db}'")
+        logger.info("Caching tags from all measurements from '{}'".format(self.db))
         cache = {}
         state = self.mode, self.output
         self.mode = 'async'
@@ -411,10 +411,10 @@ class InfluxDBClient:
         restricted_kwargs = ('q', 'epoch', 'chunked' 'chunk_size', 'parser')
         for name, query in {**queries, **kwargs}.items():
             if any(kw in restricted_kwargs for kw in re.findall('{(\w+)}', query)):
-                warnings.warn(f'Ignoring invalid query pattern: {query}')
+                warnings.warn('Ignoring invalid query pattern: {}'.format(query))
                 continue
             if name in dir(cls) and name not in cls._user_query_patterns:
-                warnings.warn(f'Ignoring invalid query pattern name: {name}')
+                warnings.warn('Ignoring invalid query pattern name: {}'.format(name))
                 continue
             cls._user_query_patterns.add(name)
             setattr(cls, name, pm(cls.query, query))
