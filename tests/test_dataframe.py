@@ -20,11 +20,11 @@ def test_write_dataframe(df_client):
 def test_write_dataframe_with_nan(df_client):
     df = utils.trading_df()
     cols = [k for k, v in df.dtypes.items() if v.type != np.int64]
-    df_client.write(df, f'fills00')
+    df_client.write(df, 'fills00')
     for i in range(10):
         for _ in range(int(len(df) / 5)):
             df.ix[np.random.randint(len(df)), np.random.choice(cols)] = np.nan
-        df_client.write(df, f'fills{i+1:02d}')
+        df_client.write(df, 'fills{:02d}'.format(i+1))
 
 
 @utils.requires_pandas
@@ -32,13 +32,13 @@ def test_select_into(df_client):
     df_client.query("SELECT * INTO m2_copy from m2")
     df = df_client.select_all(measurement='m2_copy')
     assert df.shape == (50, 8)
-    logger.info(f'\n{df.head()}')
+    logger.info('\n{}'.format(df.head()))
 
 
 @utils.requires_pandas
 def test_read_dataframe(df_client):
     df = df_client.select_all(measurement='m1')
-    logger.info(f'\n{df.head()}')
+    logger.info('\n{}'.format(df.head()))
     assert df.shape == (50, 8)
 
 
@@ -67,7 +67,7 @@ def test_read_dataframe_show_databases(df_client):
     df = df_client.show_databases()
     assert isinstance(df.index, pd.RangeIndex)
     assert 'name' in df.columns
-    logger.info(f'\n{df.head()}')
+    logger.info('\n{}'.format(df.head()))
 
 
 # noinspection PyUnresolvedReferences
