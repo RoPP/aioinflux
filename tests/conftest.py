@@ -4,10 +4,12 @@ from pathlib import Path
 
 import pytest
 import yaml
+from async_generator import async_generator, yield_
 
-from aioinflux import InfluxDBClient, testing_utils as utils
+from aioinflux import InfluxDBClient
+from aioinflux import testing_utils as utils
 
-with open(Path(__file__).parent / 'logging.yml') as f:
+with open(str(Path(__file__).parent / 'logging.yml')) as f:
     logging.config.dictConfig(yaml.load(f))
 
 
@@ -19,10 +21,11 @@ def event_loop():
 
 
 @pytest.fixture(scope='module')
+@async_generator
 async def async_client():
     async with InfluxDBClient(db='async_client_test', mode='async') as client:
         await client.create_database()
-        yield client
+        await yield_(client)
         await client.drop_database()
 
 
@@ -45,9 +48,10 @@ def df_client():
 
 
 @pytest.fixture(scope='module')
+@async_generator
 async def iter_client():
     async with InfluxDBClient(db='iter_client_test', mode='async', output='iterable') as client:
         await client.create_database()
         await client.write([p for p in utils.cpu_load_generator(100)])
-        yield client
+        await yield_(client)
         await client.drop_database()

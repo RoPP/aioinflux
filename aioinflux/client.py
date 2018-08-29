@@ -4,20 +4,23 @@ import logging
 import re
 import warnings
 from collections import defaultdict
-from functools import wraps, partialmethod as pm
+from functools import partialmethod as pm
+from functools import wraps
 from itertools import chain
-from typing import (Union, AnyStr, Mapping, Iterable,
-                    Optional, Callable, AsyncGenerator)
+from typing import (Any, AnyStr, Callable, Generic, Iterable, Mapping,
+                    Optional, Union)
 from urllib.parse import urlencode
 
 import aiohttp
+from async_generator import async_generator, yield_
 
-from . import pd, no_pandas_warning
-from .iterutils import InfluxDBResult, InfluxDBChunkedResult
-from .serialization import parse_data, make_df
+from . import no_pandas_warning, pd
+from .iterutils import InfluxDBChunkedResult, InfluxDBResult
+from .serialization import make_df, parse_data
 
-PointType = Union[AnyStr, Mapping] if pd is None else Union[AnyStr, Mapping, pd.DataFrame]
-ResultType = Union[AsyncGenerator, dict, InfluxDBResult, InfluxDBChunkedResult]
+# PointType = Union[AnyStr, Mapping] if pd is None else Union[AnyStr, Mapping, pd.DataFrame]
+PointType = Union[AnyStr, Mapping]
+ResultType = Union[Any, dict, InfluxDBResult, InfluxDBChunkedResult]
 
 # Aioinflux uses logging mainly for debugging purposes.
 # Please attach your own handlers if you need logging.
@@ -63,8 +66,8 @@ class InfluxDBClient:
         username: Optional[str] = None,
         password: Optional[str] = None,
         database: Optional[str] = None,
-        loop: Optional[asyncio.BaseEventLoop] = None,
-    ):
+        loop: Optional[asyncio.AbstractEventLoop] = None
+    ) -> None:
         """
         The InfluxDBClient object holds information necessary to interact with InfluxDB.
         It is async by default, but can also be used as a sync/blocking client.
@@ -200,7 +203,7 @@ class InfluxDBClient:
         measurement: Optional[str] = None,
         db: Optional[str] = None,
         tag_columns: Optional[Iterable] = None,
-        **extra_tags,
+        **extra_tags
     ) -> bool:
         """Writes data to InfluxDB.
         Input can be:
@@ -243,7 +246,7 @@ class InfluxDBClient:
         chunk_size: Optional[int] = None,
         db: Optional[str] = None,
         parser: Optional[Callable] = None,
-        **kwargs,
+        **kwargs
     ) -> ResultType:
         """Sends a query to InfluxDB.
         Please refer to the InfluxDB documentation for all the possible queries:
@@ -265,15 +268,17 @@ class InfluxDBClient:
             a dictionary containing the parsed JSON response.
         """
 
+        # python3.5 support
+        @async_generator
         async def _chunked_generator(url, data):
             async with self._session.post(url, data=data) as resp:
                 # Hack to avoid aiohttp raising ValueError('Line is too long')
                 # The number 16 is arbitrary (may be too large/small).
                 resp.content._high_water *= 16
                 async for chunk in resp.content:
-                    chunk = json.loads(chunk)
+                    chunk = json.loads(chunk.decode('utf-8'))
                     self._check_error(chunk)
-                    yield chunk
+                    await yield_(chunk)
 
         try:
             if args:

@@ -1,7 +1,10 @@
 import inspect
 
 import pytest
-from aioinflux import logger, InfluxDBError, iterpoints, testing_utils as utils
+from async_generator import async_generator
+
+from aioinflux import InfluxDBError, iterpoints, logger
+from aioinflux import testing_utils as utils
 
 
 @pytest.mark.asyncio
@@ -48,7 +51,9 @@ async def test_chunked_query(async_client):
 async def test_chunked_query_error(async_client):
     with pytest.raises(InfluxDBError) as e:
         resp = await async_client.query('INVALID QUERY', chunked=True, chunk_size=10)
-        _ = [i async for i in resp]
+        _ = []
+        async for i in resp:
+            _.append(i)
     logger.error(e)
 
 

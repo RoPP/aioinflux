@@ -4,12 +4,13 @@ import warnings
 from collections import defaultdict
 from functools import reduce
 from itertools import chain
-from typing import Mapping, Union, Dict
+from typing import Dict, Mapping, Union
 
-from . import pd, np
+from . import np, pd
 
 if pd is None:
     import ciso8601
+
 
 # Special characters documentation:
 # https://docs.influxdata.com/influxdb/v1.4/write_protocols/line_protocol_reference/#special-characters
@@ -133,7 +134,7 @@ def make_df(resp, tag_cache=None) -> DataFrameType:
         df = pd.DataFrame(series['values'], columns=series['columns'])
         if 'time' not in df.columns:
             return df
-        df: pd.DataFrame = df.set_index(pd.to_datetime(df['time'])).drop('time', axis=1)
+        df = df.set_index(pd.to_datetime(df['time'])).drop('time', axis=1)
         df.index = df.index.tz_localize('UTC')
         df.index.name = None
         if 'tags' in series:
@@ -219,9 +220,9 @@ def parse_df(df, measurement, tag_columns=None, **extra_tags):
         if k in tag_columns:
             tags.append("{}={{p[{}]}}".format(k, i+1))
         elif issubclass(v.type, np.integer):
-            fields.append("{}={{p[{}]}}i".format(k, i+1]}))
+            fields.append("{}={{p[{}]}}i".format(k, i+1))
         elif issubclass(v.type, (np.float, np.bool_)):
-            fields.append("{}={{p[{}]}}".format(k, i+1]}))
+            fields.append("{}={{p[{}]}}".format(k, i+1))
         else:
             # String escaping is skipped for performance reasons
             # Strings containing double-quotes can cause strange write errors
