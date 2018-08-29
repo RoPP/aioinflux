@@ -214,24 +214,29 @@ def parse_df(df, measurement, tag_columns=None, **extra_tags):
     tags = []
     fields = []
     for k, v in extra_tags.items():
-        tags.append("{}={}".format(k, escape(v, key_escape)))
+        tags.append(('{}={{}}'.format(k), '"{}"'.format(escape(v, key_escape))))
     for i, (k, v) in enumerate(df.dtypes.items()):
         k = k.translate(key_escape)
         if k in tag_columns:
-            tags.append("{}={{p[{}]}}".format(k, i + 1))
+            tags.append(('{}={{}}'.format(k), 'p[{}]'.format(i + 1)))
         elif issubclass(v.type, np.integer):
-            fields.append("{}={{p[{}]}}i".format(k, i + 1))
+            fields.append(('{}={{}}i'.format(k), 'p[{}]'.format(i + 1)))
         elif issubclass(v.type, (np.float, np.bool_)):
-            fields.append("{}={{p[{}]}}".format(k, i + 1))
+            fields.append(('{}={{}}'.format(k), 'p[{}]'.format(i + 1)))
         else:
             # String escaping is skipped for performance reasons
             # Strings containing double-quotes can cause strange write errors
             # and should be sanitized by the user.
             # e.g., df[k] = df[k].astype('str').str.translate(str_escape)
-            fields.append("{}=\"{{p[{}]}}\"".format(k, i + 1))
-    fmt = ('{}'.format(measurement), '{}'.format("," if tags else ""), ','.join(tags),
-           ' ', ','.join(fields), ' {p[0].value}')
-    f = eval("lambda p: '{}'".format(''.join(fmt)))
+            fields.append(('{}="{{}}"'.format(k), 'p[{}]'.format(i + 1)))
+    fmt_0 = '{}{}{}'.format(measurement, "," if tags else "", ','.join((t[0] for t in tags)))
+    fmt_1 = '{}'.format(','.join((f[0] for f in fields)))
+
+    tags_val = ','.join((t[1] for t in tags))
+    fields_val = ','.join((f[1] for f in fields))
+    f = "lambda p: '{} {} {{}}'.format({}{}{}{} p[0].value)".format(
+        fmt_0, fmt_1, tags_val, "," if tags else "", fields_val, "," if fields else "")
+    f = eval(f)
 
     # Map/concat
     if isnull.any():
