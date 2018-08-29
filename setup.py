@@ -1,12 +1,13 @@
 #!/usr/bin/env python
-from setuptools import setup
 from pathlib import Path
+
+from setuptools import setup
 
 with open('README.rst', 'r') as f:
     long_description = f.read()
 
-meta = {}
-with open(Path(__file__).parent / 'aioinflux' / '__init__.py') as f:
+meta = {} # type: dict
+with open(str(Path(__file__).parent / 'aioinflux' / '__init__.py')) as f:
     exec('\n'.join(l for l in f if l.startswith('__')), meta)
 
 
@@ -19,8 +20,8 @@ setup(name='aioinflux',
       url='https://github.com/plugaai/aioinflux',
       packages=['aioinflux'],
       include_package_data=True,
-      python_requires='>=3.6',
-      install_requires=['aiohttp>=3.0', 'ciso8601'],
+      python_requires='>=3.5',
+      install_requires=['aiohttp>=3.0', 'ciso8601', 'async-generator'],
       extras_require={
           'test': [
               'pytest',

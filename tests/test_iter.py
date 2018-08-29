@@ -1,6 +1,8 @@
 import inspect
 
 import pytest
+from async_generator import isasyncgen
+
 from aioinflux import logger
 
 
@@ -29,7 +31,7 @@ async def test_aiter_point(iter_client):
 async def test_aiter_chunk(iter_client):
     resp = await iter_client.select_all(measurement='cpu_load',
                                         chunked=True, chunk_size=10, wrap=True)
-    assert inspect.isasyncgen(resp.gen)
+    assert isasyncgen(resp.gen)
 
     chunks = []
     async for chunk in resp.iterchunks():
