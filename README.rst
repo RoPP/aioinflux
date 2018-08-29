@@ -1,9 +1,9 @@
 aioinflux
 =========
-.. image:: https://img.shields.io/circleci/project/github/plugaai/aioinflux.svg
-    :target: https://circleci.com/gh/plugaai/aioinflux
-.. image:: https://img.shields.io/codecov/c/github/plugaai/aioinflux.svg
-    :target: https://codecov.io/gh/plugaai/aioinflux
+.. image:: https://img.shields.io/circleci/project/github/RoPP/aioinflux.svg
+    :target: https://circleci.com/gh/RoPP/aioinflux
+.. image:: https://img.shields.io/codecov/c/github/RoPP/aioinflux.svg
+    :target: https://codecov.io/gh/RoPP/aioinflux
 .. image:: https://img.shields.io/pypi/v/aioinflux.svg
     :target: https://pypi.python.org/pypi/aioinflux
 .. image:: https://img.shields.io/pypi/pyversions/aioinflux.svg
@@ -40,14 +40,13 @@ the development branch:
 
 .. code:: bash
 
-    $ pip install git+https://github.com/plugaai/aioinflux@dev
+    $ pip install git+https://github.com/RoPP/aioinflux@dev
 
 Dependencies
 ~~~~~~~~~~~~
 
-Aioinflux supports Python 3.6+ **ONLY**. For older Python versions
-please use the `official Python client`_.
-However, there is `some discussion <https://github.com/plugaai/aioinflux/issues/10>`_
+Aioinflux supports Python 3.5+ (if you use Python 3.6+, use the `original aioinflux`_).
+However, there is `some discussion <https://github.com/RoPP/aioinflux/issues/10>`_
 regarding Pypy/Python 3.5 support.
 
 The main third-party library dependency is |aiohttp|_, for all HTTP
@@ -58,7 +57,7 @@ If ``aiohttp`` + ``asyncio`` is not your soup, see `Alternatives <#alternatives>
 
 .. |pandas| replace:: ``pandas``
 .. _pandas: https://github.com/pandas-dev/pandas
-.. _`official Python Client`: https://github.com/influxdata/influxdb-python
+.. _`original aioinflux`_: https://github.com/gusutabopb/aioinflux
 
 Usage
 -----
