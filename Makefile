@@ -1,5 +1,5 @@
 test:
-	flake8 --max-line-length=100 --ignore=F841
+	flake8
 	pytest --verbose --cov=aioinflux --cov-append --cov-report html tests/
 
 cov: test
