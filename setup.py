@@ -6,7 +6,7 @@ from setuptools import setup
 with open('README.rst', 'r') as f:
     long_description = f.read()
 
-meta = {} # type: dict
+meta = {}  # type: dict
 with open(str(Path(__file__).parent / 'aioinflux' / '__init__.py')) as f:
     exec('\n'.join(l for l in f if l.startswith('__')), meta)
 

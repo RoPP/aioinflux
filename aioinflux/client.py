@@ -7,8 +7,7 @@ from collections import defaultdict
 from functools import partialmethod as pm
 from functools import wraps
 from itertools import chain
-from typing import (Any, AnyStr, Callable, Generic, Iterable, Mapping,
-                    Optional, Union)
+from typing import Any, AnyStr, Callable, Iterable, Mapping, Optional, Union
 from urllib.parse import urlencode
 
 import aiohttp
