@@ -11,10 +11,6 @@ from . import no_pandas_warning, np, pd
 requires_pandas = pytest.mark.skipif(pd is None, reason=no_pandas_warning)
 
 
-def rand_choices(population, weights=None, *, cum_weight=None, k=1):
-    return random.choice(population) * k
-
-
 def random_point():
     now = datetime.datetime.now()
     point = {
@@ -39,7 +35,7 @@ def random_dataframe():
     """Generates a DataFrame with five random walk columns and a tag column"""
     arr = np.cumsum(np.random.randn(50, 5), axis=1)
     letters = combinations(string.ascii_uppercase, 3)
-    columns = [''.join(triplet) for triplet in rand_choices(list(letters), k=5)]
+    columns = [''.join(triplet) for triplet in random.sample(list(letters), k=5)]
     tags = [chr(i + 65) for i in np.random.randint(0, 5, 50)]
     ix = pd.date_range(end=pd.Timestamp.utcnow(), periods=50, freq='90min')
 
@@ -67,7 +63,7 @@ def trading_df(N=100):
 
 
 def random_string():
-    return ''.join(rand_choices(string.ascii_lowercase, k=random.randint(4, 10)))
+    return ''.join(random.sample(string.ascii_lowercase, k=random.randint(4, 10)))
 
 
 def cpu_load_generator(n):
