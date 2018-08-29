@@ -1,6 +1,8 @@
 import pytest
+
 from aioinflux import (InfluxDBClient, InfluxDBError, InfluxDBWriteError,
-                       pd, logger, testing_utils as utils)
+                       logger, pd)
+from aioinflux import testing_utils as utils
 
 
 def test_ping(sync_client):
@@ -58,7 +60,7 @@ def test_drop_measurement(sync_client):
 def test_write_with_custom_measurement(sync_client):
     points = [p for p in utils.random_points(5)]
     for p in points:
-        _ = p.pop('measurement')
+        _ = p.pop('measurement')  # noqa: F841
     logger.info(points)
     with pytest.raises(ValueError):
         assert sync_client.write(points)
@@ -70,7 +72,7 @@ def test_write_with_custom_measurement(sync_client):
 def test_write_without_tags(sync_client):
     points = [p for p in utils.random_points(7)]
     for p in points:
-        _ = p.pop('tags')
+        _ = p.pop('tags')  # noqa: F841
     logger.info(points)
     assert sync_client.write(points, mytag='foo')
     resp = sync_client.select_all(measurement='test_measurement')
@@ -80,8 +82,8 @@ def test_write_without_tags(sync_client):
 def test_write_without_timestamp(sync_client):
     points = [p for p in utils.random_points(9)]
     for p in points:
-        _ = p.pop('time')
-        _ = p.pop('measurement')
+        _ = p.pop('time')  # noqa: F841
+        _ = p.pop('measurement')  # noqa: F841
     logger.info(points)
     assert sync_client.write(points, measurement='yet_another_measurement')
     resp = sync_client.select_all(measurement='yet_another_measurement')
@@ -144,13 +146,13 @@ def test_invalid_data_write(sync_client):
 
 def test_invalid_client_mode():
     with pytest.raises(ValueError) as e:
-        _ = InfluxDBClient(db='mytestdb', mode=utils.random_string())
+        _ = InfluxDBClient(db='mytestdb', mode=utils.random_string())  # noqa: F841
     logger.error(e)
 
 
 def test_no_default_database_warning():
     with pytest.warns(UserWarning) as e:
-        _ = InfluxDBClient(db=None)
+        _ = InfluxDBClient(db=None)  # noqa: F841
     logger.error(e)
 
 

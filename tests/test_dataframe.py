@@ -1,5 +1,7 @@
 import pytest
-from aioinflux import logger, pd, np, testing_utils as utils
+
+from aioinflux import logger, np, pd
+from aioinflux import testing_utils as utils
 
 if pd is not None:
     pd.set_option('display.max_columns', 10)
@@ -22,9 +24,9 @@ def test_write_dataframe_with_nan(df_client):
     cols = [k for k, v in df.dtypes.items() if v.type != np.int64]
     df_client.write(df, 'fills00')
     for i in range(10):
-        for _ in range(int(len(df) / 5)):
+        for _ in range(int(len(df) / 5)):  # noqa: F841
             df.ix[np.random.randint(len(df)), np.random.choice(cols)] = np.nan
-        df_client.write(df, 'fills{:02d}'.format(i+1))
+        df_client.write(df, 'fills{:02d}'.format(i + 1))
 
 
 @utils.requires_pandas
@@ -113,7 +115,7 @@ def test_invalid_data_write_dataframe(sync_client):
 @utils.requires_pandas
 def test_chunked_dataframe(df_client):
     with pytest.raises(ValueError) as e:
-        _ = df_client.select_all('foo', chunked=True)
+        _ = df_client.select_all('foo', chunked=True)  # noqa: F841
     logger.error(e)
 
 
@@ -122,6 +124,6 @@ def test_chunked_dataframe(df_client):
 async def test_async_chunked_dataframe(df_client):
     df_client.mode = 'async'
     with pytest.raises(ValueError) as e:
-        _ = await df_client.select_all('foo', chunked=True)
+        _ = await df_client.select_all('foo', chunked=True)  # noqa: F841
     logger.error(e)
     df_client.mode = 'blocking'

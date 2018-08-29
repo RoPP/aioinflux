@@ -218,17 +218,17 @@ def parse_df(df, measurement, tag_columns=None, **extra_tags):
     for i, (k, v) in enumerate(df.dtypes.items()):
         k = k.translate(key_escape)
         if k in tag_columns:
-            tags.append("{}={{p[{}]}}".format(k, i+1))
+            tags.append("{}={{p[{}]}}".format(k, i + 1))
         elif issubclass(v.type, np.integer):
-            fields.append("{}={{p[{}]}}i".format(k, i+1))
+            fields.append("{}={{p[{}]}}i".format(k, i + 1))
         elif issubclass(v.type, (np.float, np.bool_)):
-            fields.append("{}={{p[{}]}}".format(k, i+1))
+            fields.append("{}={{p[{}]}}".format(k, i + 1))
         else:
             # String escaping is skipped for performance reasons
             # Strings containing double-quotes can cause strange write errors
             # and should be sanitized by the user.
             # e.g., df[k] = df[k].astype('str').str.translate(str_escape)
-            fields.append("{}=\"{{p[{}]}}\"".format(k, i+1))
+            fields.append("{}=\"{{p[{}]}}\"".format(k, i + 1))
     fmt = ('{}'.format(measurement), '{}'.format("," if tags else ""), ','.join(tags),
            ' ', ','.join(fields), ' {p[0].value}')
     f = eval("lambda p: '{}'".format(''.join(fmt)))
